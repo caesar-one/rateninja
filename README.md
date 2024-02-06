@@ -73,6 +73,7 @@ Errors: [None, None, Exception("Unrecognized operator")]
 - `progress_bar`: Enables a visual progress bar if `True`.
 - `max_retries`: Number of retries for failed calls.
 - `max_workers`: Number of worker threads for parallel execution.
+- `_disable_wait`: Allows to disable the internal wait mechanism that is used to respect rate limits. Note: if this is `True`, you will have to handle rate limits by yourself. To to this, use the .get_rate_limit_obj() method to get the RateLimit object instance, and use its .wait() method inside your function everytime you need to wait to respect rate limits.
 
 ## Contributing
 

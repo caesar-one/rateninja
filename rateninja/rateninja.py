@@ -123,7 +123,7 @@ class RateNinja:
     '''
     This class is used to call an API with a rate limit, using multithreading.
     '''
-    def __init__(self, max_call_count=1, per_seconds=1, greedy=False, progress_bar=True, max_retries=5, max_workers=1):
+    def __init__(self, max_call_count=1, per_seconds=1, greedy=False, progress_bar=True, max_retries=5, max_workers=1, _disable_wait=False):
         '''
         max_count: maximum number of calls per per_seconds
         per_seconds: number of seconds per max_count
@@ -133,11 +133,22 @@ class RateNinja:
         progress_bar: whether to show a progress bar
         max_retries: maximum number of retries if an errors occur
         num_workers: number of workers that can perform calls
+        _wait_in_function: this disables the waiting before creating the task, so it does NOT respect the
+            rate limits. Note that the .wait() must be used manually inside the function: use get_rate_limit_obj()
+            to obtain the RateLimit object, and call its .wait() method inside your function every time you
+            want to respect rate limits.
         '''
         self.rate_limit = RateLimit(max_count=max_call_count, per=per_seconds, greedy=greedy)
         self.progress_bar = progress_bar
         self.max_retries = max_retries
         self.max_workers = max_workers
+        self._disable_wait = _disable_wait
+
+    def get_rate_limit_obj(self):
+        '''Returns: 
+            RateLimit: the RateLimit object used to respect the rate limit. You can call its .wait() method
+            inside your function every time you want to respect rate limits.'''
+        return self.rate_limit
     
     def _call_aux(self, fct: Callable, func_args: List[Tuple] = None, func_kwargs: List[Dict] = None):
         '''
@@ -168,7 +179,8 @@ class RateNinja:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_idx = {}
             for idx, (_func_args, _func_kwargs) in tqdm(enumerate(zip(func_args, func_kwargs)), total=total_length, disable=not self.progress_bar, desc='API calls'):
-                self.rate_limit.wait()  # wait before creating the task
+                if not self._disable_wait:
+                    self.rate_limit.wait()  # wait before creating the task
                 future = executor.submit(fct, *_func_args, **_func_kwargs)
                 future_to_idx[future] = idx
 
