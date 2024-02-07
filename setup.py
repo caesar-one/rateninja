@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="rateninja",
-    version='1.0.2',
+    version='1.0.3',
     author="Cesare Campagnano",
     description="An asynchronous rate limiter for Python, that automatically handles rate limits and retries. Useful for APIs having strict rate limits.",
     long_description=long_description,

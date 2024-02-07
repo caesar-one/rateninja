@@ -178,15 +178,19 @@ class RateNinja:
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_idx = {}
-            for idx, (_func_args, _func_kwargs) in tqdm(enumerate(zip(func_args, func_kwargs)), total=total_length, disable=not self.progress_bar, desc='API calls'):
+            for idx, (_func_args, _func_kwargs) in tqdm(enumerate(zip(func_args, func_kwargs)), total=total_length, disable=not self.progress_bar, desc='Calls'):
                 if not self._disable_wait:
                     self.rate_limit.wait()  # wait before creating the task
                 future = executor.submit(fct, *_func_args, **_func_kwargs)
                 future_to_idx[future] = idx
 
+            completed_count = 0
             results = [None for _ in range(total_length)]
             results_with_errors = [None for _ in range(total_length)]
             for future in as_completed(future_to_idx):
+                completed_count += 1
+                if self.progress_bar:
+                    print(f"Completed {completed_count} / {total_length} calls", end='\r')
                 idx = future_to_idx[future]
                 try:
                     data = future.result()
@@ -195,6 +199,8 @@ class RateNinja:
                     results_with_errors[idx] = exc
                 else:
                     results[idx] = data
+        if self.progress_bar:
+            print()
         return results, results_with_errors
     
     def __call__(self, fct: Callable, func_args: List[Tuple] = None, func_kwargs: List[Dict] = None):
