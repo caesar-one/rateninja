@@ -133,7 +133,7 @@ class RateNinja:
         progress_bar: whether to show a progress bar
         max_retries: maximum number of retries if an errors occur
         num_workers: number of workers that can perform calls
-        _wait_in_function: this disables the waiting before creating the task, so it does NOT respect the
+        _disable_wait: this disables the waiting before creating the task, so it does NOT respect the
             rate limits. Note that the .wait() must be used manually inside the function: use get_rate_limit_obj()
             to obtain the RateLimit object, and call its .wait() method inside your function every time you
             want to respect rate limits.
